@@ -78,8 +78,9 @@
             board: { cols: cols, rows: rows },
             colors: { bg: '#6F6', snake: ['#69F', '#f83885'], food:'#F33' },
             initSnakeSize: 5,
-            cellsize: 20,
-            tickrate: 175
+            initFoodCount: 2,
+            cellsize: 25,
+            tickrate: 200
         };
         // Initialize key handler
         this.keyHandler = [];
@@ -92,7 +93,7 @@
         this.points = 0;
         this.snakes = this.getSnakes(directions.length);
         this.food = null;
-        this.spawnFood();
+        this.spawnFood(this.config.initFoodCount);
         // HTML elements
         this.canvas = document.getElementById('cvs');
         this.ctx = this.canvas.getContext('2d');
@@ -101,7 +102,7 @@
         this.intervalNr = null;
     }
     Game.prototype.getSnakes = function(count) {
-        const distance = 2;
+        const distance = 4;
         let snakes = [];
         while(snakes.length < count) {
             let snake = new Snake(
@@ -122,16 +123,23 @@
         }
         return snakes;
     };
-    Game.prototype.spawnFood = function() {
-        this.food = {
-            x: Math.floor(Math.random() * this.config.board.cols),
-            y: Math.floor(Math.random() * this.config.board.rows)
-        };
-        this.snakes.forEach(snake => {
-            snake.body.forEach(e => { 
-                if(e.x === this.food.x && e.y === this.food.y) this.spawnFood(); 
+    Game.prototype.spawnFood = function(count) {
+        this.food = [];
+        while(this.food.length < count) {
+            let f = {
+                x: Math.floor(Math.random() * this.config.board.cols),
+                y: Math.floor(Math.random() * this.config.board.rows)
+            };
+            let invalid = false;
+            this.snakes.forEach(snake => {
+                snake.body.forEach(e => { 
+                    if(e.x === f.x && e.y === f.y) 
+                        invalid = true; 
+                });
             });
-        });
+            if(!invalid || this.food.filter(fd => fd.x === f.x && fd.y == f.y).length)
+                this.food.push(f);
+        }
     };
     Game.prototype.isGameOver = function() {
         // Snake bites border
@@ -195,7 +203,9 @@
         }
         // Draw food
         this.ctx.fillStyle = this.config.colors.food;
-        this.ctx.fillRect(this.food.x * this.config.cellsize, this.food.y * this.config.cellsize, this.config.cellsize, this.config.cellsize);
+        this.food.forEach(f => 
+            this.ctx.fillRect(f.x * this.config.cellsize, f.y * this.config.cellsize, this.config.cellsize, this.config.cellsize)
+        );
         // Refresh score
         score.innerHTML = this.points;
     };
@@ -205,10 +215,10 @@
         }
         if(!this.isGameOver()) {
             for(let i = 0; i < this.snakes.length; i++) {
-                if(this.snakes[i].collide(this.food)) {
+                if(this.food.filter(f => this.snakes[i].collide(f)).length) {
                     this.snakes[i].grow();
                     this.points++;
-                    this.spawnFood();
+                    this.spawnFood(this.config.initFoodCount);
                 }
                 this.keyHandler[i].enabled = true;
             }
