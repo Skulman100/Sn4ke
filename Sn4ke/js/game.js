@@ -76,11 +76,11 @@
     function Game(cols, rows) {
         this.config = {
             board: { cols: cols, rows: rows },
-            colors: { bg: '#6F6', snake: ['#69F', '#f83885'], food:'#F33' },
+            colors: { bg: '#6F6', snake: ['#69f', '#f83885', '#fc3', '#906'], food:'#F33' },
             initSnakeSize: 5,
             initFoodCount: 2,
             cellsize: 25,
-            tickrate: 200
+            tickrate: 185
         };
         // Initialize key handler
         this.keyHandler = [];
@@ -92,7 +92,7 @@
         }
         this.points = 0;
         this.snakes = this.getSnakes(directions.length);
-        this.food = null;
+        this.food = [];
         this.spawnFood(this.config.initFoodCount);
         // HTML elements
         this.canvas = document.getElementById('cvs');
@@ -124,7 +124,6 @@
         return snakes;
     };
     Game.prototype.spawnFood = function(count) {
-        this.food = [];
         while(this.food.length < count) {
             let f = {
                 x: Math.floor(Math.random() * this.config.board.cols),
@@ -215,9 +214,11 @@
         }
         if(!this.isGameOver()) {
             for(let i = 0; i < this.snakes.length; i++) {
-                if(this.food.filter(f => this.snakes[i].collide(f)).length) {
+                let foodIndex = this.food.findIndex(f => this.snakes[i].collide(f));
+                if(foodIndex !== -1) {
                     this.snakes[i].grow();
                     this.points++;
+                    this.food.splice(foodIndex, 1);
                     this.spawnFood(this.config.initFoodCount);
                 }
                 this.keyHandler[i].enabled = true;
