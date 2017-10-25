@@ -93,8 +93,8 @@
                 board: { cols: cols, rows: rows },
                 colors: { bg: '#6F6', snake: ['#69f', '#f83885', '#fc3', '#906'], food: '#F33' },
                 initSnakeSize: 5,
-                initFoodCount: 2,
-                cellsize: 20,
+                initFoodCount: 3,
+                cellsize: 25,
                 tickrate: 190
             };
             // Initialize key handler
@@ -115,6 +115,7 @@
             this.score = document.getElementById('score');
             // Interval number of the game-loop-interval
             this.intervalNr = null;
+            this.speed = 170
         }
         getSnakes(count) {
             const distance = 3;
@@ -146,15 +147,13 @@
                     x: Math.floor(Math.random() * this.config.board.cols),
                     y: Math.floor(Math.random() * this.config.board.rows)
                 };
-                let invalid = false;
-                this.snakes.forEach(snake => {
-                    snake.body.forEach(e => {
-                        if (e.x === f.x && e.y === f.y)
-                            invalid = true;
-                    });
-                });
-                if (!invalid || this.food.filter(fd => fd.x === f.x && fd.y == f.y).length)
-                    this.food.push(f);
+                
+                let invalid = 0;
+                invalid = this.snakes.filter(snake => snake.body.filter(e => e.x === f.x && e.y === f.y).length).length;
+
+                if(!invalid)
+                    if(!this.food.filter(fd => fd.x === f.x && fd.y == f.y).length)
+                        this.food.push(f);
             }
         }
         isGameOver() {
@@ -248,7 +247,7 @@
         }
     }
 
-    const game = new Game(25, 25);
+    const game = new Game(20, 20);
     addEventListener('keydown', e => game.processKeys(e.keyCode));
     game.intervalNr = setInterval(() => game.loop(), game.config.tickrate);
 })();
